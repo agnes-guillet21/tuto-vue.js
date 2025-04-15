@@ -3,7 +3,6 @@
 <!-- On affiche un message si il n'y a pas de tâches à faire. => ok
 Un champ texte accompagné d'un bouton "Ajouter" sera présent au dessus de la liste et permettra d'ajouter une nouvelle tâche.
 Pour chaque tâche, une case à cocher permettra de marquer la tâche comme faite.
-Une tâche terminée sera barrée (à l'aide de CSS).
 Les tâches à faire seront toujours affichées en premier.
 Une case, en bas de liste, permettra de masquer les tâches terminées. -->
 
@@ -14,33 +13,29 @@ Une case, en bas de liste, permettra de masquer les tâches terminées. -->
     <router-link to="/">Retour à l’accueil</router-link>
     <br>
 
-    <form action ="" @submit="addTask" class="task-form">
+    <form action ="" @submit.prevent="addTask" class="task-form">
         <div class="form-group">
-            <input type="text" placeholder="Nouvelle tâches"> 
+            <input type="text" placeholder="Nouvelle tâches" v-model="newTask"> 
         </div>
-        <div class="form-group">
-           <label for=""> <input type="checkbox" id="completed" name="completed"> Completée </input> </label> 
-           <label> <input type="checkbox" id="toDo" name="toDo"> A faire </input> </label> 
-        </div>
-        <div class="form-group">
-            <label>Date de création</label>
-            <input type="date" name="taskDate" id="">    
-         </div>
 
       <button>Ajouter une nouvelle tâche</button>
     </form>
     <hr>
 
 
-    <div v-if="toDoList.length">
+    <div v-if="taskList.length">
         <ul>  
-            <li v-for="task in toDoList"
-            :key="task">
-            {{ task.title }}, {{ task.completed }}, {{ formatDate(task.date) }}
+            <li v-for="task in sortedTask()"
+            :key="task.date">
+                <label><input type="checkbox" v-model="task.completed">  {{ task.title }}</label>
             </li>
-         
-        </ul>   
+           
+        </ul>    
+        <div>
+            <label><input type="checkbox" v-model="hideTaskCompleted"> Masquer les taches complétées </label>
+        </div>
     </div>
+ 
     <div v-else>la liste est vide </div>    
 
 </div>
@@ -51,33 +46,39 @@ Une case, en bas de liste, permettra de masquer les tâches terminées. -->
 
 <script setup>
     import { ref } from "vue";
-    const toDoList = ref([
-    { "title": "Faire des courses", "completed": false, "date": 20240730 },
-    { "title": " Se former sur Kafka", "completed": false, "date": 20240730 },
-    { "title": "Poncer", "completed": false, "date": 20240730 }
+
+    const taskList = ref([
+        {
+            title: "tache de test",
+            completed:true,
+            date:662025
+
+        },
+        {
+            title: "tache a faire",
+            completed:false,
+            date:882025
+        }
+      
     ]) 
 
-    const newTask =  ref([
-        "title",
-        "completed",
-        "date",
-    ]);
-    
-    const formatDate = (rawDate) => {
-        const dateStr = rawDate.toString();
-        const year = dateStr.slice(0, 4);
-        const month = dateStr.slice(4, 6);
-        const day = dateStr.slice(6, 8);
-        return `${day}/${month}/${year}`;
-    };
+    const newTask =  ref('');
+    const hideTaskCompleted = ref(false);
 
+    const addTask = () => {
+        taskList.value.push({
+            title: newTask.value,
+            completed: false,
+            date: Date.now() 
+        });
 
+    }
 
-    const addTask = (event) => {
-        event.preventDefault();
-        console.log(newTask.value)
-        toDoList.value.push([
-        ]);
-
+    const sortedTask = () => {
+       const taskSorted = taskList.value.toSorted((a,b)=> a.completed > b.completed? 1 :-1);
+       if (hideTaskCompleted.value == true) {
+            return taskSorted.filter(t => t.completed == false)       
+        }
+    return taskSorted;
     }
 </script>
